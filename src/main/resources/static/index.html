@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bank App</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+    input, button { margin: 5px 0; padding: 8px; width: 100%; }
+    .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    h2 { margin-top: 0; }
+    #output { white-space: pre-wrap; background: #f7f7f7; padding: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Bank App Browser Interface</h1>
+
+  <div class="section">
+    <h2>Signup</h2>
+    <input type="email" id="signupEmail" placeholder="Email">
+    <input type="text" id="signupFullName" placeholder="Full Name">
+    <input type="password" id="signupPassword" placeholder="Password">
+    <button onclick="signup()">Signup</button>
+  </div>
+
+  <div class="section">
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div class="section">
+    <h2>Deposit</h2>
+    <input type="number" id="depositAmount" placeholder="Amount">
+    <button onclick="deposit()">Deposit</button>
+  </div>
+
+  <div class="section">
+    <h2>Withdraw</h2>
+    <input type="number" id="withdrawAmount" placeholder="Amount">
+    <button onclick="withdraw()">Withdraw</button>
+  </div>
+
+  <div class="section">
+    <h2>Check Balance</h2>
+    <button onclick="getBalance()">Get Balance</button>
+  </div>
+
+  <div class="section">
+    <h2>Transaction History</h2>
+    <button onclick="getTransactions()">Get Transactions</button>
+  </div>
+
+  <h2>Output:</h2>
+  <div id="output"></div>
+
+  <script>
+    let sessionToken = null;
+    const apiBase = 'http://50.19.183.4:8080/api';
+
+    async function signup() {
+      const res = await fetch(`${apiBase}/auth/signup`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          email: document.getElementById('signupEmail').value,
+          fullName: document.getElementById('signupFullName').value,
+          password: document.getElementById('signupPassword').value
+        })
+      });
+      const data = await res.json();
+      document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+      if(res.ok) sessionToken = data.token;
+    }
+
+    async function login() {
+      const res = await fetch(`${apiBase}/auth/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          email: document.getElementById('loginEmail').value,
+          password: document.getElementById('loginPassword').value
+        })
+      });
+      const data = await res.json();
+      document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+      if(res.ok) sessionToken = data.token;
+    }
+
+    async function deposit() {
+      if(!sessionToken) { alert('Login first!'); return; }
+      const res = await fetch(`${apiBase}/account/deposit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-Token': sessionToken
+        },
+        body: JSON.stringify({ amount: parseFloat(document.getElementById('depositAmount').value) })
+      });
+      const data = await res.json();
+      document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function withdraw() {
+      if(!sessionToken) { alert('Login first!'); return; }
+      const res = await fetch(`${apiBase}/account/withdraw`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-Token': sessionToken
+        },
+        body: JSON.stringify({ amount: parseFloat(document.getElementById('withdrawAmount').value) })
+      });
+      const data = await res.json();
+      document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function getBalance() {
+      if(!sessionToken) { alert('Login first!'); return; }
+      const res = await fetch(`${apiBase}/account/balance`, {
+        headers: {'X-Session-Token': sessionToken}
+      });
+      const data = await res.json();
+      document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function getTransactions() {
+      if(!sessionToken) { alert('Login first!'); return; }
+      const res = await fetch(`${apiBase}/account/transactions`, {
+        headers: {'X-Session-Token': sessionToken}
+      });
+      const data = await res.json();
+      document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
+
